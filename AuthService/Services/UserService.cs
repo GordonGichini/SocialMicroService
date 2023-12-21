@@ -4,6 +4,7 @@ using AuthService.Services.IServices;
 using AuthService.Models;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace AuthService.Services
 {
@@ -29,9 +30,26 @@ namespace AuthService.Services
             throw new NotImplementedException();
         }
 
-        public Task<LoginRequestDto> loginUser(LoginRequestDto loginRequestDto)
+        public async Task<LoginResponseDto> loginUser(LoginRequestDto loginRequestDto)
         {
-            throw new NotImplementedException();
+            // a User witht that username exists
+            var user = await _context.ApplicationUsers.Where(x => x.UserName.ToLower() == loginRequestDto.UserName.ToLower()).FirstOrDefaultAsync();
+            // compare hashed password with plain text password
+            var isValid = _userManager.CheckPasswordAsync(user, loginRequestDto.Password).GetAwaiter().GetResult();
+
+            if (!isValid || user == null)
+            {
+                // if username or password are wrong
+                return new LoginResponseDto();
+            }
+            var loggeduser = _mapper.Map<UserDto>(user);
+
+            var response = new LoginResponseDto()
+            {
+                User = loggeduser,
+                Token = "Coming soon..."
+            };
+            return response;
         }
 
         public async Task<string> RegisterUser(RegisterUserDto userDto)
@@ -39,6 +57,7 @@ namespace AuthService.Services
             try
             {
                 var user = _mapper.Map<ApplicationUser>(userDto);
+               
 
                 // create user
                 var result = await _userManager.CreateAsync(user, userDto.Password);
@@ -58,5 +77,12 @@ namespace AuthService.Services
                 return ex.Message;
             }
         }
+
+        Task<LoginRequestDto> IUser.loginUser(LoginRequestDto loginRequestDto)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
+
+

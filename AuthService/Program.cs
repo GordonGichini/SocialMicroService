@@ -33,6 +33,7 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 // our services
 builder.Services.AddScoped<IUser, UserService>();
+builder.Services.AddScoped<UserService>();
 
 var app = builder.Build();
 

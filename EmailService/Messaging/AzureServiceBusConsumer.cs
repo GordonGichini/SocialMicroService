@@ -4,6 +4,7 @@ using EmailService.Models.Dtos;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json.Serialization;
+using EmailService.Service;
 
 namespace EmailService.Messaging
 {
@@ -13,6 +14,8 @@ namespace EmailService.Messaging
         private readonly string _connectionString;
         private readonly string _queueName;
         private readonly ServiceBusProcessor _emailProcessor;
+        private readonly EmailsService _emailService;
+        private readonly EmailsService _email;
 
         public AzureServiceBusConsumer(IConfiguration configuration)
         {

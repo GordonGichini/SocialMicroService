@@ -14,20 +14,45 @@ namespace AuthService.Services
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-
+        private readonly IJwt _jwtServices;
 
         public UserService(ApplicationDbContext applicationDbContext, IMapper mapper, UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager)
+            RoleManager<IdentityRole> roleManager, IJwt jwtService)
         {
             _context = applicationDbContext;
             _mapper = mapper;
             _userManager = userManager;
             _roleManager = roleManager;
+            _jwtServices = jwtService;
         }
            
-            public Task<bool> AssignUserRoles(string Email, string RoleName)
+            public async Task<bool> AssignUserRoles(string Email, string RoleName)
         {
-            throw new NotImplementedException();
+            var user = await _context.ApplicationUsers.Where(x => x.Email.ToLower() == Email.ToLower()).FirstOrDefaultAsync();
+            //does  the user exist?
+            if (user == null)
+            {
+                return false;
+            }
+            else
+            {
+                //does the role exist 
+                if (!_roleManager.RoleExistsAsync(RoleName).GetAwaiter().GetResult())
+                {
+                    //create the role 
+                    await _roleManager.CreateAsync(new IdentityRole(RoleName));
+                }
+
+                //assign the user the role
+                await _userManager.AddToRoleAsync(user, RoleName);
+                return true;
+            }
+
+        }
+
+        public async Task<ApplicationUser> GetUserById(string Id)
+        {
+            return await _context.ApplicationUsers.Where(x => x.Id == Id).FirstOrDefaultAsync();
         }
 
         public async Task<LoginResponseDto> loginUser(LoginRequestDto loginRequestDto)

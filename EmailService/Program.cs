@@ -1,5 +1,8 @@
 using EmailService.Extensions;
 using EmailService.Messaging;
+using EmailService.Service;
+using EmailService.Data;
+using Microsoft.EntityFrameworkCore;
 
 
 
@@ -13,8 +16,20 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("myconnection"));
+});
+
+//changing the above service to SingleTon
+var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+optionsBuilder.UseSqlServer(builder.Configuration.GetConnectionString("myconnection"));
+builder.Services.AddSingleton(new EmailsService(optionsBuilder.Options));
+
 
 builder.Services.AddSingleton<IAzureServiceBusConsumer, AzureServiceBusConsumer>();
+
+
 
 var app = builder.Build();
 
